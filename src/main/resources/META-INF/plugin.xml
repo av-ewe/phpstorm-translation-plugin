@@ -10,14 +10,26 @@
 
     <extensions defaultExtensionNs="com.intellij"> <!--com.avenit.phpstormtranslationplugin-->
         <toolWindow factoryClass="com.github.avewe.phpstormtranslationplugin.toolWindow.MyToolWindowFactory" id="MyToolWindow"/>
+        <fileType name="XLF File"
+                  language="XML"
+                  implementationClass="XlfFileType"
+
+                  extensions="xlf"
+        />
     </extensions>
     <applicationListeners>
         <listener class="com.github.avewe.phpstormtranslationplugin.listeners.MyApplicationActivationListener" topic="com.intellij.openapi.application.ApplicationActivationListener"/>
     </applicationListeners>
     <actions>
-        <action id="ConfigureTranslationAction" class="ConfigureTranslationAction" text="Configure Traslation">
+        <action
+                id="ConfigureTranslationAction"
+                class="ConfigureTranslationAction"
+                text="Update Translation"
+                description="Change or add translations to TYPO3's locallang files"
+                icon="/icons/deepl-logo.svg">
+<!--            AllIcons.General.LocalizationSettings-->
             <keyboard-shortcut keymap="$default" first-keystroke="ctrl COMMA"/>
-            <add-to-group group-id="EditorPopupMenu" anchor="last"/>
+            <add-to-group group-id="EditorPopupMenu" anchor="first"/>
         </action>
     </actions>
 </idea-plugin>
