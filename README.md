@@ -17,11 +17,15 @@
 - [ ] Click the <kbd>Watch</kbd> button on the top of the [IntelliJ Platform Plugin Template][template] to be notified about releases containing new features and fixes.
 
 <!-- Plugin description -->
-This Fancy IntelliJ Platform Plugin is going to be your implementation of the brilliant ideas that you have.
+This Awesome Plugin will help you localize your TYPO3 project by improving the way you create and edit your translation keys and files.
 
-This specific section is a source for the [plugin.xml](/src/main/resources/META-INF/plugin.xml) file which will be extracted by the [Gradle](/build.gradle.kts) during the build process.
+By pressing <kbd>Ctrl</kbd> + <kbd>,</kbd> or 'Update Translation' in the editor-popup-menu, a dialog opens where you can set a translation-key and translations for already maintained or new languages.
 
-To keep everything working, do not remove `<!-- ... -->` sections. 
+By activating a translation-API in the settings (under Tools > TYPO3 LLL) you can fill in the translation fields semi-automatic by pressing the corresponding button. (API-key required)
+
+When opening the dialog the plugin automatically searches the line your cursor is positioned for a translation-viewhelper (e.g. <f:translate /> or f:translate()) and reads the key and default value when available.
+
+Enjoy localizing!
 <!-- Plugin description end -->
 
 ## Installation
