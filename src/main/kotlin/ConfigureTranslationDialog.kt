@@ -1,12 +1,15 @@
-import com.github.avewe.phpstormtranslationplugin.services.LocalizationService
-import com.github.avewe.phpstormtranslationplugin.services.TranslationService
+
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.ui.setEmptyState
 import com.intellij.ui.components.JBTextField
-import com.intellij.ui.components.panels.HorizontalBox
 import com.intellij.ui.components.panels.VerticalLayout
-import java.awt.*
+import com.intellij.util.ui.components.BorderLayoutPanel
+import com.phpstormtranslationplugin.TranslationPluginIcons
+import com.phpstormtranslationplugin.TranslationPluginSettings
+import com.phpstormtranslationplugin.services.LocalizationService
+import com.phpstormtranslationplugin.services.TranslationService
+import java.awt.Dimension
 import javax.swing.*
 import javax.swing.event.DocumentEvent
 import javax.swing.event.DocumentListener
@@ -16,9 +19,10 @@ class ConfigureTranslationDialog(
     translationArguments: Map<String, String>,
     ) : DialogWrapper(project, true) {
 
+    private val pluginSettings = TranslationPluginSettings.instance
     private var translationKey = translationArguments["transKey"]?:""
     private val defaultValue = translationArguments["defaultValue"]
-    private val tfKey = JTextField(translationKey)  //TODO: make translation key changeable in dialog
+    private val tfKey = JTextField(translationKey)
     private val langPanel = JPanel(VerticalLayout(10))
     private val localizationService = LocalizationService(project)
     private val translationService = TranslationService()
@@ -35,18 +39,22 @@ class ConfigureTranslationDialog(
                 if (textValue == oldTranslationFields[key] || textValue == null) {
                     return@forEach
                 }
-                println("saving to files -> language: $key, value: $textValue")
                 if (key == "en") localizationService.updateSourceTranslations(translationKey, textValue, languageCodes)
                 else localizationService.updateTranslation(translationKey, textValue, key)
             }
         }
+        val tps = TranslationPluginSettings.instance
+        println(tps.state.apiKeyDeppL)
+        println(tps.state.useApiDeepL)
     }
 
     override fun getPreferredFocusedComponent(): JTextField? {
         return translationFields["en"]
     }
 
+    //TODO: make scrollable!
     override fun createCenterPanel(): JComponent {
+
         val panel = JPanel(VerticalLayout(10))
 
         title = "Update Translation"
@@ -57,6 +65,7 @@ class ConfigureTranslationDialog(
             override fun changedUpdate(e: DocumentEvent) { onTextChanged() }
         })
 
+        panel.minimumSize = Dimension(160, 160) //min 100 100
         panel.add(JLabel("Translation key").apply {
             labelFor = tfKey
         })
@@ -67,87 +76,96 @@ class ConfigureTranslationDialog(
         panel.add(langPanel)
         panel.add(JSeparator())
 
-        val boxAddLang = HorizontalBox()
-        val tfAddLang = JBTextField().setEmptyState("Add language (e.g. \"de\")")
-        val btnAddLang = JButton("add")
-        val verticalSeparator = JSeparator()
-        verticalSeparator.orientation = SwingConstants.VERTICAL
-        verticalSeparator.preferredSize = Dimension(40, 40)
-        val translateAllBtn = JButton("all", TranslationPluginIcons.DeepL)    //AllIcons.General.LocalizationSettings
-        tfAddLang.preferredSize = Dimension(200, 40)
+        val newLangBox = BorderLayoutPanel()
+        val newLangTextField = JBTextField().setEmptyState("e.g. \"de\"")
+        val newLangLabel = JLabel(" Add new language ")
+        val newLangButton = JButton("add")
 
-        btnAddLang.maximumSize = Dimension(20,40)
-        btnAddLang.addActionListener {
-            val newLangCode = tfAddLang.text ?: return@addActionListener
-            newLangCode.lowercase()         //TODO: check if lang already exists
+        newLangTextField.columns = 8
+        newLangTextField.horizontalAlignment = SwingConstants.LEADING
+        newLangLabel.horizontalAlignment = SwingConstants.LEADING
+        newLangLabel.horizontalTextPosition = SwingConstants.TRAILING
+        newLangButton.preferredSize = Dimension(40,-1)
+        newLangButton.horizontalAlignment = SwingConstants.CENTER
+        newLangButton.horizontalTextPosition = SwingConstants.TRAILING
+        newLangButton.addActionListener {
+            val newLangCode = newLangTextField.text
+            if (newLangCode.isNullOrEmpty() || languageCodes.contains(newLangCode.lowercase())) {
+                return@addActionListener
+            }
+            newLangCode.lowercase()
             langPanel.add(getLanguageField(newLangCode))
             languageCodes.add(newLangCode)
-            tfAddLang.text = null
-            langPanel.revalidate()
-            println("Success?")
+            newLangTextField.text = null
+            if (this.window.height > 1000) return@addActionListener
+            val newHeight = this.window.height + 50
+            this.window.size = Dimension(this.window.width, newHeight)
+            this.window.revalidate()
         }
 
-        boxAddLang.add(tfAddLang)
-        boxAddLang.add(btnAddLang)
-        boxAddLang.add(verticalSeparator)
-        panel.add(boxAddLang)
+        newLangBox.addToLeft(newLangTextField)
+        newLangBox.addToCenter(newLangLabel)
+        newLangBox.addToRight(newLangButton)
+        panel.add(newLangBox)
         panel.add(JSeparator())
 
         return panel
     }
 
-    private fun getLanguageField(langCode: String): HorizontalBox {
+    private fun getLanguageField(langCode: String): BorderLayoutPanel {
         val translations = localizationService.getAllTranslationsByKey(translationKey)
-
-        val layout = HorizontalBox() //HorizontalLayout(10)
-
+        val layout = BorderLayoutPanel()
         val label = JLabel(langCode)
         val textFieldValue = translations[langCode]
             ?: if (langCode == "en") defaultValue ?: translationKey.split (".").last() else ""
         val textField = JBTextField(textFieldValue).setEmptyState("No translation found")
-        val transBtn = JButton(TranslationPluginIcons.DeepL) //AllIcons.General.LocalizationSettings
+        val transBtn = JButton(TranslationPluginIcons.DeepL)
+
+        label.horizontalAlignment = SwingConstants.LEADING
         label.labelFor = textField
-        label.preferredSize = Dimension(16,-1)
-//        textField.minimumSize = Dimension(100, 40)
-//        textField.preferredSize = Dimension(304, 40)
-//        textField.
-        if (langCode != "en") {
-            transBtn.addActionListener {
-                val sourceValue = getTranslationFromSourceValue(langCode)
-                textField.text = sourceValue
-                textField.repaint()
-            }
-            transBtn.preferredSize = Dimension(40,-1)
-        } else {
-            transBtn.text = "all"
-            transBtn.preferredSize = Dimension(60,-1)
-            transBtn.addActionListener {
-                translationFields.forEach { (key, field) ->
-                    if (key == "en") return@forEach
-                    val sourceValue = getTranslationFromSourceValue(key)
-                    field.text = sourceValue
-                    field.repaint()
+        label.preferredSize = Dimension(24,-1)
+
+        textField.horizontalAlignment = SwingConstants.LEADING
+
+        if (pluginSettings.state.useApiDeepL) {
+            transBtn.horizontalAlignment = SwingConstants.CENTER
+            transBtn.horizontalTextPosition = SwingConstants.TRAILING
+            if (langCode != "en") {
+                transBtn.toolTipText = "Get a translation with DeepL of the \"en\" field value"
+                transBtn.addActionListener {
+                    val sourceValue = getTranslationBySourceValue(langCode)
+                    textField.text = sourceValue
+                    textField.repaint()
+                }
+                transBtn.preferredSize = Dimension(35,-1)
+            } else {
+                transBtn.text = "all"
+                transBtn.toolTipText = "Get translations with DeepL of the \"en\" field value for every language below"
+                transBtn.preferredSize = Dimension(55,-1)
+                transBtn.addActionListener {
+                    translationFields.forEach { (langCode, field) ->
+                        if (langCode == "en") return@forEach
+                        val sourceValue = getTranslationBySourceValue(langCode)
+                        field.text = sourceValue
+                        field.repaint()
+                    }
                 }
             }
+            layout.addToRight(transBtn)
         }
-//        layout.preferredSize = Dimension(320, 40)
 
-        layout.add(label)
-        layout.add(textField)
-        layout.add(transBtn)
-//        layout.addLayoutComponent(label, HorizontalLayout.LEFT)
-//        layout.addLayoutComponent(textField, HorizontalLayout.FILL)
-//        layout.addLayoutComponent(transBtn, HorizontalLayout.LEFT)
+        layout.addToLeft(label)
+        layout.addToCenter(textField)
 
         translationFields[langCode] = textField
         oldTranslationFields[langCode] = textField.text ?: ""
 
-        return layout   //????
+        return layout
     }
 
-    private fun getTranslationFromSourceValue(langCode: String): String? {
+    private fun getTranslationBySourceValue(langCode: String): String? {
         val sourceValue = translationFields["en"]?.text ?: return null
-        return translationService.translateValue(sourceValue, langCode)
+        return translationService.translateValueWithDeepL(sourceValue, langCode)
     }
 
     private fun onTextChanged() {

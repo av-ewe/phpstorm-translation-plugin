@@ -1,24 +1,37 @@
 <!-- Plugin Configuration File. Read more: https://plugins.jetbrains.com/docs/intellij/plugin-configuration-file.html -->
 <idea-plugin>
-    <id>com.github.avewe.phpstormtranslationplugin</id>
-    <name>PhpStorm Localization</name>
+    <id>com.phpstormtranslationplugin</id>
+    <name>TYPO3 LLL (PHPStorm)</name>
     <vendor>av-ewe</vendor>
 
     <depends>com.intellij.modules.platform</depends>
 
     <resource-bundle>messages.MyBundle</resource-bundle>
 
-    <extensions defaultExtensionNs="com.intellij"> <!--com.avenit.phpstormtranslationplugin-->
-        <toolWindow factoryClass="com.github.avewe.phpstormtranslationplugin.toolWindow.MyToolWindowFactory" id="MyToolWindow"/>
+    <extensions defaultExtensionNs="com.intellij">
+<!--        <toolWindow-->
+<!--                factoryClass="com.phpstormtranslationplugin.toolWindow.TranslationSettingsFactory"-->
+<!--                id="TranslationSettings"-->
+<!--                icon="/icons/plugin-logo.svg"-->
+<!--                anchor="right"-->
+<!--        />-->
         <fileType name="XLF File"
                   language="XML"
                   implementationClass="XlfFileType"
-
                   extensions="xlf"
         />
+        <applicationConfigurable
+                displayName="TYPO3 LLL"
+                parentId="tools"
+                instance="com.phpstormtranslationplugin.TranslationPluginSettingsConfigurable"
+        />
+        <applicationService
+                serviceImplementation="com.phpstormtranslationplugin.TranslationPluginSettings"
+        />
+
     </extensions>
     <applicationListeners>
-        <listener class="com.github.avewe.phpstormtranslationplugin.listeners.MyApplicationActivationListener" topic="com.intellij.openapi.application.ApplicationActivationListener"/>
+        <listener class="com.phpstormtranslationplugin.listeners.MyApplicationActivationListener" topic="com.intellij.openapi.application.ApplicationActivationListener"/>
     </applicationListeners>
     <actions>
         <action
@@ -26,8 +39,7 @@
                 class="ConfigureTranslationAction"
                 text="Update Translation"
                 description="Change or add translations to TYPO3's locallang files"
-                icon="/icons/deepl-logo.svg">
-<!--            AllIcons.General.LocalizationSettings-->
+                icon="AllIcons.General.LocalizationSettings">
             <keyboard-shortcut keymap="$default" first-keystroke="ctrl COMMA"/>
             <add-to-group group-id="EditorPopupMenu" anchor="first"/>
         </action>

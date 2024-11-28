@@ -16,7 +16,7 @@ version = providers.gradleProperty("pluginVersion").get()
 
 // Set the JVM language level used to build the project.
 kotlin {
-    jvmToolchain(17)
+    jvmToolchain(21) //17
 }
 
 // Configure project's dependencies
@@ -31,7 +31,7 @@ repositories {
 
 // Dependencies are managed with Gradle version catalog - read more: https://docs.gradle.org/current/userguide/platforms.html#sub:version-catalog
 dependencies {
-    implementation("org.redundent:kotlin-xml-builder:1.9.1")
+    implementation("com.deepl.api:deepl-java:1.7.0")
 
     testImplementation(libs.junit)
 

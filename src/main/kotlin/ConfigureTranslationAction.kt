@@ -18,18 +18,19 @@ class ConfigureTranslationAction: AnAction() {
         val editor = event.getData(CommonDataKeys.EDITOR) ?: return
         val document = editor.document
         val caret = editor.caretModel.primaryCaret
+        val selection = caret.selectedText
         val translationArguments = getTranslationArgumentsFromCaret(document, caret)
-        println(translationArguments)
-
-        ConfigureTranslationDialog(project, translationArguments).show()  //TODO: rename to Update... or Modify...
+        if(selection !== null) {
+            translationArguments["transKey"] = getTranslationKeyFromSelection(selection)
+        }
+        ConfigureTranslationDialog(project, translationArguments).show()
     }
 
     override fun getActionUpdateThread(): ActionUpdateThread {
         return ActionUpdateThread.EDT
     }
 
-    //TODO:selection direct to key?
-    private fun getTranslationArgumentsFromCaret(document: Document, caret: Caret): Map<String, String> {
+    private fun getTranslationArgumentsFromCaret(document: Document, caret: Caret): MutableMap<String, String> {
         val lineNumber: Int = caret.logicalPosition.line
         val lineContent = document.getText(
             TextRange(
@@ -44,6 +45,16 @@ class ConfigureTranslationAction: AnAction() {
             ?: Regex(">(.*?)</f:translate>").find(lineContent)
         val defaultValue: String = defaultValueResult?.groups?.get(1)?.value ?: ""
 
-        return mapOf("transKey" to transKey, "defaultValue" to defaultValue)
+        return mutableMapOf("transKey" to transKey, "defaultValue" to defaultValue)
+    }
+
+    private fun getTranslationKeyFromSelection(selection: String): String {
+        val pattern1 = Regex("(?<=.)[A-Z]")
+        val pattern2 = Regex("[^\\w._]")
+        val snakeCaseSelection = selection
+            .replace(pattern1, "_$0")
+            .replace(pattern2, "_")
+            .lowercase()
+        return snakeCaseSelection
     }
 }

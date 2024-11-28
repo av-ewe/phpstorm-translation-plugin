@@ -1,4 +1,4 @@
-package com.github.avewe.phpstormtranslationplugin
+package com.phpstormtranslationplugin
 
 import com.intellij.psi.xml.XmlTag
 import com.intellij.util.xml.DomElement

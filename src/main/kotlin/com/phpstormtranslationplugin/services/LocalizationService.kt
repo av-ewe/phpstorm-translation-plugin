@@ -1,25 +1,20 @@
-package com.github.avewe.phpstormtranslationplugin.services
+package com.phpstormtranslationplugin.services
 
-import com.intellij.openapi.components.Service
-import com.intellij.openapi.diagnostic.thisLogger
-import com.intellij.openapi.project.Project
-import com.github.avewe.phpstormtranslationplugin.MyBundle
 import com.intellij.openapi.command.WriteCommandAction
+import com.intellij.openapi.components.Service
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiManager
 import com.intellij.psi.xml.XmlFile
 import com.intellij.psi.xml.XmlTag
+import com.phpstormtranslationplugin.TranslationPluginSettings
 
 @Service(Service.Level.PROJECT)
 class LocalizationService(private val project: Project) {
 
-    //TODO: local path to configuration
-    private val languageDirectoryPath = "${project.basePath}/packages/av_site/Resources/Private/Language"
-
-    init {
-        thisLogger().info(MyBundle.message("projectService", project.name))
-    }
+    private val pluginSettings = TranslationPluginSettings.instance
+    private val languageDirectoryPath = project.basePath + pluginSettings.state.llFilePath
 
     fun getLanguageCodesFromFiles(): MutableSet<String> {
         val languageCodes = mutableSetOf<String>()
@@ -138,7 +133,6 @@ class LocalizationService(private val project: Project) {
         newTargetTag.setAttribute("state", "translated")
         newTransTag.addSubTag(newSourceTag, false)
         newTransTag.addSubTag(newTargetTag, false)
-//        newTransTag.setAttribute("xml:space", "preserve") TODO: -> implement later
         return newTransTag
     }
 
@@ -160,7 +154,7 @@ class LocalizationService(private val project: Project) {
                     <file source-language="en" target-language="$langCode" datatype="plaintext" original="messages" date="2014-07-11T10:45:00Z" product-name="av_site">
                         <header/>
                         <body> ${if (transKey != null) { """ 
-                            <trans-unit id="$transKey" xml:space="preserve">
+                            <trans-unit id="$transKey">
                                 <source>${if (updateSource) value else sourceTranslation}</source>
                                 <target state="translated">${if (!updateSource) value else ""}</target>
                             </trans-unit>""" } else {null}}

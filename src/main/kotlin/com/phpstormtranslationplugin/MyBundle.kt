@@ -1,4 +1,4 @@
-package com.github.avewe.phpstormtranslationplugin
+package com.phpstormtranslationplugin
 
 import com.intellij.DynamicBundle
 import org.jetbrains.annotations.NonNls

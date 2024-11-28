@@ -1,4 +1,4 @@
-
+package com.phpstormtranslationplugin
 
 import com.intellij.openapi.util.IconLoader
 import javax.swing.Icon
