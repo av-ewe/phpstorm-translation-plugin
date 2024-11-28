@@ -84,7 +84,7 @@ class LocalizationService(private val project: Project) {
         }
         for (file in foundFiles ?: return) {
             println("fileFound ->updateSource: $updateSource")
-            setTranslationInXmlFile(newValue, file, transKey, updateSource)
+            setTranslationInXmlFile(newValue, file, transKey, langCode, updateSource)
         }
     }
 
@@ -92,7 +92,8 @@ class LocalizationService(private val project: Project) {
         newValue: String,
         xlfFile: XmlFile,
         transKey: String,
-        updateSource: Boolean = false
+        langCode: String,
+        updateSource: Boolean = false,
     ) {
         val xlfBodyTag = getXlfBodyTag(xlfFile) ?: return
         val xlfTransUnitTags = xlfBodyTag.findSubTags("trans-unit")
@@ -100,12 +101,16 @@ class LocalizationService(private val project: Project) {
 
         WriteCommandAction.runWriteCommandAction(project) {
             if (tag == null) {
-                val newTag = createTranslationTag(xlfBodyTag, transKey, newValue, updateSource)
+                val newTag = createTranslationTag(xlfBodyTag, transKey, newValue, langCode, updateSource)
                 xlfBodyTag.addSubTag(newTag, false)
                 return@runWriteCommandAction
             }
-            if (updateSource) tag.findFirstSubTag("source")?.value?.text = newValue
-            else tag.findFirstSubTag("target")?.value?.text = newValue
+            if (updateSource) {
+                tag.findFirstSubTag("source")?.value?.text = newValue
+                return@runWriteCommandAction
+            }
+            tag.findFirstSubTag("target")?.value?.text = newValue
+            tag.findFirstSubTag("target")?.setAttribute("state", "translated")
         }
     }
 
@@ -113,6 +118,7 @@ class LocalizationService(private val project: Project) {
         parentTag: XmlTag,
         transKey: String,
         value: String,
+        langCode: String,
         updateSource: Boolean = false
     ): XmlTag {
         val sourceTranslation = getSourceTranslation(transKey)
@@ -130,9 +136,10 @@ class LocalizationService(private val project: Project) {
             (if (!updateSource) value else null),
             false
         )
-        newTargetTag.setAttribute("state", "translated")
+        //TODO state for missing translation
+        if (!updateSource) newTargetTag.setAttribute("state", "translated")
         newTransTag.addSubTag(newSourceTag, false)
-        newTransTag.addSubTag(newTargetTag, false)
+        if (langCode !== "en") newTransTag.addSubTag(newTargetTag, false)
         return newTransTag
     }
 

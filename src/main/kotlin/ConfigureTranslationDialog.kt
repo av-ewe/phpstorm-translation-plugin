@@ -36,7 +36,7 @@ class ConfigureTranslationDialog(
         getButton(okAction)?.addActionListener {
             languageCodes.forEach { key ->
                 val textValue = translationFields[key]?.text
-                if (textValue == oldTranslationFields[key] || textValue == null) {
+                if (textValue == oldTranslationFields[key] || textValue == null || textValue == "") {
                     return@forEach
                 }
                 if (key == "en") localizationService.updateSourceTranslations(translationKey, textValue, languageCodes)
@@ -52,6 +52,7 @@ class ConfigureTranslationDialog(
         return translationFields["en"]
     }
 
+    //TODO: delete key option??
     //TODO: make scrollable!
     override fun createCenterPanel(): JComponent {
 
@@ -120,6 +121,7 @@ class ConfigureTranslationDialog(
             ?: if (langCode == "en") defaultValue ?: translationKey.split (".").last() else ""
         val textField = JBTextField(textFieldValue).setEmptyState("No translation found")
         val transBtn = JButton(TranslationPluginIcons.DeepL)
+        var sourceValue: String? = null
 
         label.horizontalAlignment = SwingConstants.LEADING
         label.labelFor = textField
@@ -133,7 +135,7 @@ class ConfigureTranslationDialog(
             if (langCode != "en") {
                 transBtn.toolTipText = "Get a translation with DeepL of the \"en\" field value"
                 transBtn.addActionListener {
-                    val sourceValue = getTranslationBySourceValue(langCode)
+                    sourceValue = getTranslationBySourceValue(langCode)
                     textField.text = sourceValue
                     textField.repaint()
                 }
@@ -145,7 +147,7 @@ class ConfigureTranslationDialog(
                 transBtn.addActionListener {
                     translationFields.forEach { (langCode, field) ->
                         if (langCode == "en") return@forEach
-                        val sourceValue = getTranslationBySourceValue(langCode)
+                        sourceValue = getTranslationBySourceValue(langCode)
                         field.text = sourceValue
                         field.repaint()
                     }
@@ -158,7 +160,7 @@ class ConfigureTranslationDialog(
         layout.addToCenter(textField)
 
         translationFields[langCode] = textField
-        oldTranslationFields[langCode] = textField.text ?: ""
+        oldTranslationFields[langCode] = sourceValue ?: ""
 
         return layout
     }
