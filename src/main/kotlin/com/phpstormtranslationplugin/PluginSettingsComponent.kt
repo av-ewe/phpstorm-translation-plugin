@@ -7,17 +7,17 @@ import com.intellij.util.ui.FormBuilder
 import org.jetbrains.annotations.NotNull
 import javax.swing.JPanel
 
-class TranslationPluginSettingsComponent {
+class PluginSettingsComponent {
     val panel: JPanel
     private val llPath = JBTextField()
     private val apiKeyDeepL = JBTextField()
-    private val useDeepL = JBCheckBox(MyBundle.message("useDeepL"))
+    private val useDeepL = JBCheckBox(PluginBundle.message("settings.use_deepl"))
 
     init {
         panel = FormBuilder.createFormBuilder()
-            .addLabeledComponent(JBLabel("Locallang files path: "), llPath, 1, true)
+            .addLabeledComponent(JBLabel(PluginBundle.message("settings.ll_path")), llPath, 1, true)
             .addSeparator(6)
-            .addLabeledComponent(JBLabel("DeepL API-Key:"), apiKeyDeepL, 5, false)
+            .addLabeledComponent(JBLabel(PluginBundle.message("settings.set_deepl_api_key")), apiKeyDeepL, 5, false)
             .addComponent(useDeepL, 1)
             .addComponentFillVertically(JPanel(), 0)
             .panel

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plugins>
+  <plugin
+          id="com.phpstormtranslationplugin"
+          url="https://github.com/av-ewe/phpstorm-translation-plugin/raw/refs/heads/feature/translation-check-coroutine/release/Plugin.zip"
+          version="0.0.2">
+    <idea-version since-build="233" until-build="243.*"/>
+  </plugin>
+</plugins>

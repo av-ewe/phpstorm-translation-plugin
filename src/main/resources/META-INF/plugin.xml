@@ -3,30 +3,31 @@
     <id>com.phpstormtranslationplugin</id>
     <name>TYPO3 LLL (PHPStorm)</name>
     <vendor>av-ewe</vendor>
+    <version>0.0.2</version>
 
     <depends>com.intellij.modules.platform</depends>
 
-    <resource-bundle>messages.MyBundle</resource-bundle>
+    <resource-bundle>messages.Bundle</resource-bundle>
 
     <extensions defaultExtensionNs="com.intellij">
-<!--        <toolWindow-->
-<!--                factoryClass="com.phpstormtranslationplugin.toolWindow.TranslationSettingsFactory"-->
-<!--                id="TranslationSettings"-->
-<!--                icon="/icons/plugin-logo.svg"-->
-<!--                anchor="right"-->
-<!--        />-->
+        <toolWindow
+                factoryClass="com.phpstormtranslationplugin.toolWindow.PluginToolWindowFactory"
+                id="TranslationSettings"
+                icon="/icons/plugin-logo.svg"
+                anchor="right"
+        />
         <fileType name="XLF File"
                   language="XML"
-                  implementationClass="XlfFileType"
+                  implementationClass="com.phpstormtranslationplugin.xlf.XlfFileType"
                   extensions="xlf"
         />
         <applicationConfigurable
                 displayName="TYPO3 LLL"
                 parentId="tools"
-                instance="com.phpstormtranslationplugin.TranslationPluginSettingsConfigurable"
+                instance="com.phpstormtranslationplugin.PluginSettingsConfigurable"
         />
         <applicationService
-                serviceImplementation="com.phpstormtranslationplugin.TranslationPluginSettings"
+                serviceImplementation="com.phpstormtranslationplugin.PluginSettings"
         />
 
     </extensions>
@@ -35,13 +36,14 @@
     </applicationListeners>
     <actions>
         <action
-                id="ConfigureTranslationAction"
-                class="ConfigureTranslationAction"
+                id="com.phpstormtranslationplugin.UpdateTranslationAction"
+                class="com.phpstormtranslationplugin.UpdateTranslationAction"
                 text="Update Translation"
-                description="Change or add translations to TYPO3's locallang files"
+                description="Update or add translations to TYPO3's locallang files"
                 icon="AllIcons.General.LocalizationSettings">
             <keyboard-shortcut keymap="$default" first-keystroke="ctrl COMMA"/>
             <add-to-group group-id="EditorPopupMenu" anchor="first"/>
         </action>
     </actions>
+    <idea-version since-build="233" until-build="243.*" />
 </idea-plugin>

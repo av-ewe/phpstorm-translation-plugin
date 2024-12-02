@@ -8,15 +8,15 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiManager
 import com.intellij.psi.xml.XmlFile
 import com.intellij.psi.xml.XmlTag
-import com.phpstormtranslationplugin.TranslationPluginSettings
+import com.phpstormtranslationplugin.PluginSettings
 
 @Service(Service.Level.PROJECT)
 class LocalizationService(private val project: Project) {
 
-    private val pluginSettings = TranslationPluginSettings.instance
+    private val pluginSettings = PluginSettings.instance
     private val languageDirectoryPath = project.basePath + pluginSettings.state.llFilePath
 
-    fun getLanguageCodesFromFiles(): MutableSet<String> {
+    fun getLanguageCodesByFiles(): MutableSet<String> {
         val languageCodes = mutableSetOf<String>()
         val languageDirectory = getLanguageDirectory() ?: return languageCodes
         val searchPattern = Regex("[a-z]{2,3}\\.locallang(_be)?(_form)?\\.xlf")
@@ -30,21 +30,44 @@ class LocalizationService(private val project: Project) {
         return languageCodes
     }
 
-    fun getAllTranslationsByKey(
-        transKey: String
+    fun getTranslationsByKey(
+        translationKey: String
     ): MutableMap<String, String> {
         val translations = mutableMapOf<String, String>()
         val searchPattern = "^([a-z]{2,3}\\.)?locallang.xlf"
-        val foundFiles = searchTranslationFiles(searchPattern) ?: return translations
+        val foundFiles = findTranslationFiles(searchPattern) ?: return translations
 
         for (file in foundFiles) {
             var langCode = file.name.split(".")[0]
             if (Regex("locallang").containsMatchIn(langCode)) langCode = "en"
-            val translationValue = getTranslationFromXlfFile(file, transKey, (langCode == "en")) ?: continue
+            val translationValue = getTranslationFromXlfFile(file, translationKey, (langCode == "en")) ?: continue
 
             translations[langCode] = translationValue
         }
         return translations
+    }
+
+    fun updateTranslation(transKey: String, newValue: String, langCode: String, updateSource: Boolean = false) {
+        val languageDirectory = getLanguageDirectory() ?: return
+        val filePrefix = if(langCode == "en") "" else "$langCode."
+        val foundFiles = findTranslationFiles("^${filePrefix}locallang.xlf")
+        println("foundFiles: $foundFiles")
+
+        if (foundFiles == null && !updateSource) {
+            println("createFile -> updateSource: false")
+            createTranslationFile(languageDirectory, langCode, transKey, newValue)
+            return
+        }
+        for (file in foundFiles ?: return) {
+            println("fileFound ->updateSource: $updateSource")
+            setTranslationInXmlFile(newValue, file, transKey, langCode, updateSource)
+        }
+    }
+
+    fun updateSourceTranslations(transKey: String, newValue: String, langCodes: MutableSet<String>) {
+        langCodes.forEach { langCode ->
+            updateTranslation(transKey, newValue, langCode, true)
+        }
     }
 
     private fun getTranslationFromXlfFile(xlfFile: XmlFile, transKey: String, isBaseFile: Boolean = false): String? {
@@ -64,35 +87,46 @@ class LocalizationService(private val project: Project) {
         return targetValue
     }
 
-    fun updateSourceTranslations(transKey: String, newValue: String, langCodes: MutableSet<String>) {
-        langCodes.forEach { langCode ->
-            updateTranslation(transKey, newValue, langCode, true)
+    private fun getLanguageDirectory(): VirtualFile? {
+        val virtualFileSystem = LocalFileSystem.getInstance()
+        val directory = virtualFileSystem.findFileByPath(languageDirectoryPath)
+        if (directory == null || !directory.isDirectory) {
+            return null
         }
+        return directory
     }
 
-    //TODO: Processing multiple language-code at once for better performance
-    fun updateTranslation(transKey: String, newValue: String, langCode: String, updateSource: Boolean = false) {
-        val languageDirectory = getLanguageDirectory() ?: return
-        val filePrefix = if(langCode == "en") "" else "$langCode."
-        val foundFiles = searchTranslationFiles("^${filePrefix}locallang.xlf")
-        println("foundFiles: $foundFiles")
+    private fun getXlfBodyTag(xlfFile: XmlFile): XmlTag? {
+        val rootTag: XmlTag? = xlfFile.rootTag
+        val fileTag = rootTag?.findFirstSubTag("file")
+        return fileTag?.findFirstSubTag("body")
+    }
 
-        if (foundFiles == null && !updateSource) {
-            println("createFile -> updateSource: false")
-            createTranslationFile(languageDirectory, langCode, transKey, newValue)
-            return
+    private fun getSourceTranslation(transKey: String): String? {
+        val foundFiles = findTranslationFiles("^locallang.xlf") ?: return null
+        return getTranslationFromXlfFile(foundFiles[0], transKey, true)
+    }
+
+    private fun findTranslationFiles(searchPattern: String): List<XmlFile>? {
+        val files = mutableListOf<XmlFile>()
+        val languageDirectory = getLanguageDirectory() ?: return files
+        val pattern = Regex(searchPattern)
+
+        for (file in languageDirectory.children) {
+            if (!pattern.containsMatchIn(file.name)) continue
+            val psiFile = PsiManager.getInstance(project).findFile(file)
+            if (psiFile !is XmlFile) continue
+            files.add(psiFile)
         }
-        for (file in foundFiles ?: return) {
-            println("fileFound ->updateSource: $updateSource")
-            setTranslationInXmlFile(newValue, file, transKey, updateSource)
-        }
+        return files.ifEmpty { null }
     }
 
     private fun setTranslationInXmlFile(
         newValue: String,
         xlfFile: XmlFile,
         transKey: String,
-        updateSource: Boolean = false
+        langCode: String,
+        updateSource: Boolean = false,
     ) {
         val xlfBodyTag = getXlfBodyTag(xlfFile) ?: return
         val xlfTransUnitTags = xlfBodyTag.findSubTags("trans-unit")
@@ -100,12 +134,16 @@ class LocalizationService(private val project: Project) {
 
         WriteCommandAction.runWriteCommandAction(project) {
             if (tag == null) {
-                val newTag = createTranslationTag(xlfBodyTag, transKey, newValue, updateSource)
+                val newTag = createTranslationTag(xlfBodyTag, transKey, newValue, langCode, updateSource)
                 xlfBodyTag.addSubTag(newTag, false)
                 return@runWriteCommandAction
             }
-            if (updateSource) tag.findFirstSubTag("source")?.value?.text = newValue
-            else tag.findFirstSubTag("target")?.value?.text = newValue
+            if (updateSource) {
+                tag.findFirstSubTag("source")?.value?.text = newValue
+                return@runWriteCommandAction
+            }
+            tag.findFirstSubTag("target")?.value?.text = newValue
+            tag.findFirstSubTag("target")?.setAttribute("state", "translated")
         }
     }
 
@@ -113,6 +151,7 @@ class LocalizationService(private val project: Project) {
         parentTag: XmlTag,
         transKey: String,
         value: String,
+        langCode: String,
         updateSource: Boolean = false
     ): XmlTag {
         val sourceTranslation = getSourceTranslation(transKey)
@@ -130,9 +169,10 @@ class LocalizationService(private val project: Project) {
             (if (!updateSource) value else null),
             false
         )
-        newTargetTag.setAttribute("state", "translated")
+        //TODO translation-state for missing translation
+        if (!updateSource) newTargetTag.setAttribute("state", "translated")
         newTransTag.addSubTag(newSourceTag, false)
-        newTransTag.addSubTag(newTargetTag, false)
+        if (langCode !== "en") newTransTag.addSubTag(newTargetTag, false)
         return newTransTag
     }
 
@@ -144,7 +184,6 @@ class LocalizationService(private val project: Project) {
         updateSource: Boolean = false
     ) {
         val sourceTranslation = transKey?.let { getSourceTranslation(it) }
-        println("sourceTranslation: $sourceTranslation")
         WriteCommandAction.runWriteCommandAction(project) {
             val newFile = directory.createChildData(this, "${langCode}.locallang.xlf")
             val newXmlFile = PsiManager.getInstance(project).findFile(newFile)
@@ -163,40 +202,5 @@ class LocalizationService(private val project: Project) {
                 </xliff>
             """.trimIndent())
         }
-    }
-
-    private fun getLanguageDirectory(): VirtualFile? {
-        val virtualFileSystem = LocalFileSystem.getInstance()
-        val directory = virtualFileSystem.findFileByPath(languageDirectoryPath)
-        if (directory == null || !directory.isDirectory) {
-            println("Directory not found or is not a directory: $languageDirectoryPath")
-            return null
-        }
-        return directory
-    }
-
-    private fun getXlfBodyTag(xlfFile: XmlFile): XmlTag? {
-        val rootTag: XmlTag? = xlfFile.rootTag
-        val fileTag = rootTag?.findFirstSubTag("file")
-        return fileTag?.findFirstSubTag("body")
-    }
-
-    private fun searchTranslationFiles(searchPattern: String): List<XmlFile>? {
-        val files = mutableListOf<XmlFile>()
-        val languageDirectory = getLanguageDirectory() ?: return files
-        val pattern = Regex(searchPattern)
-
-        for (file in languageDirectory.children) {
-            if (!pattern.containsMatchIn(file.name)) continue
-            val psiFile = PsiManager.getInstance(project).findFile(file)
-            if (psiFile !is XmlFile) continue
-            files.add(psiFile)
-        }
-        return files.ifEmpty { null }
-    }
-
-    fun getSourceTranslation(transKey: String): String? {
-        val foundFiles = searchTranslationFiles("^locallang.xlf") ?: return null
-        return getTranslationFromXlfFile(foundFiles[0], transKey, true)
     }
 }

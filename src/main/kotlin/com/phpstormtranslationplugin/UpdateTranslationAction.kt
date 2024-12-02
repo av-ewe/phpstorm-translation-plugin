@@ -1,3 +1,5 @@
+package com.phpstormtranslationplugin
+
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -6,7 +8,7 @@ import com.intellij.openapi.editor.Caret
 import com.intellij.openapi.editor.Document
 import com.intellij.openapi.util.TextRange
 
-class ConfigureTranslationAction: AnAction() {
+class UpdateTranslationAction: AnAction() {
     override fun update(event: AnActionEvent) {
 //        val editor = event.getRequiredData(CommonDataKeys.EDITOR)
 //        val primaryCaret = editor.caretModel.primaryCaret
@@ -23,7 +25,7 @@ class ConfigureTranslationAction: AnAction() {
         if(selection !== null) {
             translationArguments["transKey"] = getTranslationKeyFromSelection(selection)
         }
-        ConfigureTranslationDialog(project, translationArguments).show()
+        UpdateTranslationDialog(project, translationArguments).show()
     }
 
     override fun getActionUpdateThread(): ActionUpdateThread {
