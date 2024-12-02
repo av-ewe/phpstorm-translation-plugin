@@ -3,6 +3,7 @@
     <id>com.phpstormtranslationplugin</id>
     <name>TYPO3 LLL (PHPStorm)</name>
     <vendor>av-ewe</vendor>
+    <version>0.0.1</version>
 
     <depends>com.intellij.modules.platform</depends>
 
@@ -44,4 +45,5 @@
             <add-to-group group-id="EditorPopupMenu" anchor="first"/>
         </action>
     </actions>
+    <idea-version since-build="233" until-build="243.*" />
 </idea-plugin>
