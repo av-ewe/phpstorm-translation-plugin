@@ -8,11 +8,11 @@ import org.jetbrains.annotations.NonNls
 import org.jetbrains.annotations.NotNull
 
 @State(name = "com.phpstormtranslationplugin.TranslationPluginSettings", storages = [Storage("SdkSettingsPlugin.xml")])
-internal class TranslationPluginSettings
+internal class PluginSettings
 
-    : PersistentStateComponent<TranslationPluginSettings.State> {
+    : PersistentStateComponent<PluginSettings.State> {
     internal class State {
-        var llFilePath: @NonNls String = "/packages/av_site/Resources/Private/Language"
+        var llFilePath: @NonNls String = PluginBundle.message("constants.default_ll_path")
         var apiKeyDeppL: @NonNls String = ""
         var useApiDeepL: Boolean = false
     }
@@ -28,8 +28,8 @@ internal class TranslationPluginSettings
     }
 
     companion object {
-        val instance: TranslationPluginSettings
+        val instance: PluginSettings
             get() = ApplicationManager.getApplication()
-                .getService(TranslationPluginSettings::class.java)
+                .getService(PluginSettings::class.java)
     }
 }

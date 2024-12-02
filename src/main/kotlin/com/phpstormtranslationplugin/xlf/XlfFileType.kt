@@ -1,3 +1,5 @@
+package com.phpstormtranslationplugin.xlf
+
 import com.intellij.icons.AllIcons
 import com.intellij.lang.xml.XMLLanguage
 import com.intellij.openapi.fileTypes.LanguageFileType

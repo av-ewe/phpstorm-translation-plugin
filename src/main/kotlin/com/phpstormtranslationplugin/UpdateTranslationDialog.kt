@@ -1,12 +1,10 @@
-
+package com.phpstormtranslationplugin
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.ui.setEmptyState
 import com.intellij.ui.components.JBTextField
 import com.intellij.ui.components.panels.VerticalLayout
 import com.intellij.util.ui.components.BorderLayoutPanel
-import com.phpstormtranslationplugin.TranslationPluginIcons
-import com.phpstormtranslationplugin.TranslationPluginSettings
 import com.phpstormtranslationplugin.services.LocalizationService
 import com.phpstormtranslationplugin.services.TranslationService
 import java.awt.Dimension
@@ -14,19 +12,19 @@ import javax.swing.*
 import javax.swing.event.DocumentEvent
 import javax.swing.event.DocumentListener
 
-class ConfigureTranslationDialog(
+class UpdateTranslationDialog(
     project: Project,
     translationArguments: Map<String, String>,
     ) : DialogWrapper(project, true) {
 
-    private val pluginSettings = TranslationPluginSettings.instance
+    private val pluginSettings = PluginSettings.instance
     private var translationKey = translationArguments["transKey"]?:""
     private val defaultValue = translationArguments["defaultValue"]
     private val tfKey = JTextField(translationKey)
     private val langPanel = JPanel(VerticalLayout(10))
     private val localizationService = LocalizationService(project)
     private val translationService = TranslationService()
-    private val languageCodes = localizationService.getLanguageCodesFromFiles()
+    private val languageCodes = localizationService.getLanguageCodesByFiles()
     private val translationFields = mutableMapOf<String, JTextField>()
     private val oldTranslationFields = mutableMapOf<String, String>()
 
@@ -43,7 +41,7 @@ class ConfigureTranslationDialog(
                 else localizationService.updateTranslation(translationKey, textValue, key)
             }
         }
-        val tps = TranslationPluginSettings.instance
+        val tps = PluginSettings.instance
         println(tps.state.apiKeyDeppL)
         println(tps.state.useApiDeepL)
     }
@@ -52,13 +50,14 @@ class ConfigureTranslationDialog(
         return translationFields["en"]
     }
 
+    //TODO: strings -> bundle.message
     //TODO: delete key option??
-    //TODO: make scrollable!
+    //TODO: make scrollable??
     override fun createCenterPanel(): JComponent {
 
         val panel = JPanel(VerticalLayout(10))
 
-        title = "Update Translation"
+        title = PluginBundle.message("dialog.header")
         tfKey.preferredSize = Dimension(320, 40)
         tfKey.document.addDocumentListener(object: DocumentListener {
             override fun insertUpdate(e: DocumentEvent) { onTextChanged() }
@@ -67,7 +66,7 @@ class ConfigureTranslationDialog(
         })
 
         panel.minimumSize = Dimension(160, 160) //min 100 100
-        panel.add(JLabel("Translation key").apply {
+        panel.add(JLabel(PluginBundle.message("dialog.trans_key")).apply {
             labelFor = tfKey
         })
         panel.add(tfKey)
@@ -79,7 +78,7 @@ class ConfigureTranslationDialog(
 
         val newLangBox = BorderLayoutPanel()
         val newLangTextField = JBTextField().setEmptyState("e.g. \"de\"")
-        val newLangLabel = JLabel(" Add new language ")
+        val newLangLabel = JLabel(PluginBundle.message("dialog.add_new_lang"))
         val newLangButton = JButton("add")
 
         newLangTextField.columns = 8
@@ -114,13 +113,13 @@ class ConfigureTranslationDialog(
     }
 
     private fun getLanguageField(langCode: String): BorderLayoutPanel {
-        val translations = localizationService.getAllTranslationsByKey(translationKey)
+        val translations = localizationService.getTranslationsByKey(translationKey)
         val layout = BorderLayoutPanel()
         val label = JLabel(langCode)
         val textFieldValue = translations[langCode]
             ?: if (langCode == "en") defaultValue ?: translationKey.split (".").last() else ""
         val textField = JBTextField(textFieldValue).setEmptyState("No translation found")
-        val transBtn = JButton(TranslationPluginIcons.DeepL)
+        val transBtn = JButton(PluginIcons.DeepL)
         var sourceValue: String? = null
 
         label.horizontalAlignment = SwingConstants.LEADING
