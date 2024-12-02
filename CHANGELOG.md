@@ -4,7 +4,7 @@
 
 ## [0.0.2]
 ### Added
-- Bla
+- Lorem ipsum dolor
 
 ## [Unreleased]
 ### Added
