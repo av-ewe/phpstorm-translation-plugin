@@ -2,7 +2,7 @@
 <plugins>
   <plugin
           id="com.phpstormtranslationplugin"
-          url="https://github.com/av-ewe/phpstorm-translation-plugin/raw/refs/heads/feature/translation-check-coroutine/release/phpstorm-translation-plugin-0.0.1.zip"
+          url="https://github.com/av-ewe/phpstorm-translation-plugin/raw/refs/heads/feature/translation-check-coroutine/release/phpstorm-translation-plugin-0.0.2.zip"
           version="0.0.1">
     <idea-version since-build="233" until-build="243.*"/>
   </plugin>

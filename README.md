@@ -21,7 +21,7 @@ This Awesome Plugin will help you localize your TYPO3 project by improving the w
 
 By pressing <kbd>Ctrl</kbd> + <kbd>,</kbd> or 'Update Translation' in the editor-popup-menu, a dialog opens where you can set a translation-key and translations for already maintained or new languages.
 
-By activating a translation-API in the settings (under Tools > TYPO3 LLL) you can fill in the translation fields semi-automatic by pressing the corresponding button. (API-key required)
+By activating a translation-API in the settings (under Tools &gt; TYPO3 LLL) you can fill in the translation fields semi-automatic by pressing the corresponding button. (API-key required)
 
 When opening the dialog the plugin automatically searches the line your cursor is positioned for a translation-viewhelper (e.g. <f:translate /> or f:translate()) and reads the key and default value when available.
 
