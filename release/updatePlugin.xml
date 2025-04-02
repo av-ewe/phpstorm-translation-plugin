@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plugins>
+  <plugin
+          id="com.t3lll"
+          url="https://anonymous@rackstation01.zwonet.de:5006/public/t3lll/T3LLL-0.1.9.zip"
+          version="0.1.9">
+    <idea-version since-build="233" until-build="243.*"/>
+  </plugin>
+</plugins>
