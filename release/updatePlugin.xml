@@ -2,8 +2,8 @@
 <plugins>
   <plugin
           id="com.t3lll"
-          url="https://anonymous@rackstation01.zwonet.de:5006/public/t3lll/T3LLL-0.1.9.zip"
+          url="https://github.com/av-ewe/phpstorm-translation-plugin/raw/refs/heads/dev/release/T3LLL-0.1.9.zip"
           version="0.1.9">
-    <idea-version since-build="233" until-build="243.*"/>
+    <idea-version since-build="233"/>
   </plugin>
 </plugins>
